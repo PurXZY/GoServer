@@ -35,13 +35,14 @@ func NewTcpTask(conn *net.TCPConn) *TcpTask {
 	_ = conn.SetWriteBuffer(osNetWriteBufferSize)
 	_ = conn.SetReadBuffer(osNetReadBufferDataSize)
 	t := &TcpTask{
-		owner:      logic.NewAvatar(),
 		conn:       conn,
 		sendBuff:   NewByteBuffer(),
 		sendSignal: make(chan bool, 1),
-		isClosed:   1,
+		isClosed:   0,
 	}
+	t.owner = logic.NewAvatar()
 	t.init()
+	t.owner.SetTcpTask(t)
 	return t
 }
 
@@ -72,7 +73,7 @@ func (t *TcpTask) SendData(data []byte) {
 	}
 	dataSize := len(data) + cmdDataHeadSize
 	if dataSize == 0 {
-		log.Warn.Println("send data size:", dataSize)
+		log.Warn.Println("send usercmd size:", dataSize)
 		return
 	}
 	t.sendMutex.Lock()
@@ -166,7 +167,7 @@ func (t *TcpTask) recvLoop() {
 		msgBuff = recvBuff.RdBuf()
 		dataSize = int(util.BytesToUint32(msgBuff[:cmdDataHeadSize]))
 		if dataSize > sendDataMaxSize {
-			log.Error.Println("recv too big data over limit size:", dataSize)
+			log.Error.Println("recv too big usercmd over limit size:", dataSize)
 			return
 		}
 		for totalSize < dataSize {
