@@ -1,0 +1,71 @@
+syntax = "proto3";
+
+package usercmd;
+
+enum CmdType {
+	LoginReq = 0;
+	LoginRes = 1;
+	IntoRoomReq = 2;
+	IntoRoomRes = 3;
+	SyncAllBattleEntities = 4;
+	TurnInfo = 5;
+	CastSkillReq = 6;
+	SkillResultRes = 7;
+	MaxCmdId = 8;
+}
+
+enum PosIndex {
+	PosELeft = 0;
+	PosECenter = 1;
+	PosERight = 2;
+	PosBLeft = 3;
+	PosBCenter = 4;
+	PosBRight = 5;
+}
+
+message LoginC2SMsg{
+	string name = 1;
+}
+
+message LoginS2CMsg{
+	uint32 playerId = 1;
+}
+
+message IntoRoomC2SMsg{
+
+}
+
+message IntoRoomS2cMsg{
+	uint32 RoomId = 1;
+}
+
+message BattleEntity{
+	uint32 PosIndex = 1;
+	uint32 EntityType = 2;
+	uint32 Health = 3;
+	uint32 PhysicalAttack = 4;
+    uint32 MagicAttack = 5;
+    uint32 PhysicalDefend = 6;
+    uint32 MagicDefend = 7;
+    uint32 MoveSpeed = 8;
+}
+
+message SyncAllBattleEntitiesS2CMsg{
+	repeated BattleEntity entities = 1;
+}
+
+message TurnInfoS2CMsg{
+    uint32 BigTurnIndex = 1;
+    uint32 SmallTurnIndex = 2;
+    uint32 CurEntityPosIndex = 3;
+	repeated uint32 SkillSet = 4;
+}
+
+message CastSkillC2SMsg{
+	uint32 SkillId = 1;
+	repeated uint32 TargetIds = 2;
+}
+
+message SkillResultS2CMsg{
+
+}

@@ -155,7 +155,7 @@ func (t *TcpTask) recvLoop() {
 			needNum = cmdDataHeadSize - totalSize
 			readNum, err = t.conn.Read(recvBuff.WrBuf())
 			if err == io.EOF {
-				log.Debug.Println("remote close io eof addr:", t.conn.RemoteAddr())
+				log.Debug.Println("read io eof addr:", t.conn.RemoteAddr())
 				return
 			} else if err != nil {
 				log.Error.Printf("recv loop addr:%s, err:%T %+v", t.conn.RemoteAddr(), err, err)

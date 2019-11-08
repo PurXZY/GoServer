@@ -3,12 +3,14 @@ package logic
 import (
 	"GoServer/i"
 	"GoServer/log"
+	"GoServer/logic/turnroom"
 	"GoServer/proto/usercmd"
 	"GoServer/util"
 	"github.com/golang/protobuf/proto"
 )
 
 type Avatar struct {
+	name string
 	task i.ITcpTask
 }
 
@@ -20,7 +22,11 @@ func (a *Avatar) SetTcpTask(t i.ITcpTask) {
 	a.task = t
 }
 
-func (a *Avatar) SendMsg(msgType usercmd.UserCmd, msg proto.Message) {
+func (a *Avatar) GetName() string {
+	return a.name
+}
+
+func (a *Avatar) SendMsg(msgType usercmd.CmdType, msg proto.Message) {
 	data, err := util.EncodeCmd(uint16(msgType), msg)
 	if err != nil {
 		return
@@ -29,21 +35,22 @@ func (a *Avatar) SendMsg(msgType usercmd.UserCmd, msg proto.Message) {
 }
 
 func (a *Avatar) ParseMsg(data []byte) {
-	log.Info.Println("ParseMsg")
-	cmdType := usercmd.UserCmd(util.GetCmdType(data))
+	cmdType := usercmd.CmdType(util.GetCmdType(data))
+	log.Info.Printf("ParseMsg %T %+v", cmdType, cmdType)
 	switch cmdType {
-	case usercmd.UserCmd_LoginReq:
+	case usercmd.CmdType_LoginReq:
 		recvCmd, ok := util.DecodeCmd(data, &usercmd.LoginC2SMsg{}).(*usercmd.LoginC2SMsg)
 		if !ok {
 			log.Error.Println("decode cmd fail cmdType:", cmdType)
 			return
 		}
+		a.name = recvCmd.GetName()
 		log.Debug.Println("recv msg UserCmd_LoginReq name:", recvCmd.GetName())
 		msg := usercmd.LoginS2CMsg{
 			PlayerId: 6666,
 		}
-		a.SendMsg(usercmd.UserCmd_LoginRes, &msg)
-	case usercmd.UserCmd_IntoRoomReq:
+		a.SendMsg(usercmd.CmdType_LoginRes, &msg)
+	case usercmd.CmdType_IntoRoomReq:
 		a.ReqIntoRoom()
 	default:
 		log.Error.Println("unknown cmdType:", cmdType)
@@ -52,8 +59,5 @@ func (a *Avatar) ParseMsg(data []byte) {
 }
 
 func (a *Avatar) ReqIntoRoom() {
-	msg := usercmd.IntoRoomS2CMsg{
-		RoomId: 7777,
-	}
-	a.SendMsg(usercmd.UserCmd_IntoRoomRes, &msg)
+	turnroom.NewTurnRoom(7777, a)
 }
